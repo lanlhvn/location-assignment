@@ -12,9 +12,11 @@ import { LocationService } from './location.service';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiMethodNotAllowedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -64,7 +66,7 @@ export class LocationController {
   @ApiNotFoundResponse({
     description: 'No parent location found',
   })
-  @ApiInternalServerErrorResponse({
+  @ApiBadRequestResponse({
     description: 'An exception occurred during saving location.',
   })
   @Post()
@@ -141,7 +143,7 @@ export class LocationController {
   @ApiNotFoundResponse({
     description: 'The editing location not found or parent location not found',
   })
-  @ApiInternalServerErrorResponse({
+  @ApiBadRequestResponse({
     description: 'An exception occurred during updating location.',
   })
   @Put(':id')
@@ -188,8 +190,12 @@ export class LocationController {
   @ApiNotFoundResponse({
     description: 'The deleting location not found or parent location not found',
   })
-  @ApiInternalServerErrorResponse({
+  @ApiBadRequestResponse({
     description: 'An exception occurred during the deletion.',
+  })
+  @ApiMethodNotAllowedResponse({
+    description:
+      'Can not delete the location which contains sub location (children)',
   })
   @Delete(':id')
   remove(@Param('id') id: string) {

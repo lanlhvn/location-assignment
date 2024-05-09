@@ -1,6 +1,6 @@
 import {
+  BadRequestException,
   Injectable,
-  InternalServerErrorException,
   Logger,
   MethodNotAllowedException,
   NotFoundException,
@@ -40,7 +40,7 @@ export class LocationService {
         `Failed to create location: ${JSON.stringify(createLocationDto)}`,
         error.stack,
       );
-      throw new InternalServerErrorException();
+      throw new BadRequestException();
     }
   }
 
@@ -89,7 +89,7 @@ export class LocationService {
         `Failed to update location: ${JSON.stringify(updateLocationDto)}`,
         error.stack,
       );
-      throw new InternalServerErrorException();
+      throw new BadRequestException();
     }
   }
 
@@ -120,7 +120,7 @@ export class LocationService {
         `Failed to delete location: ${JSON.stringify(location)}`,
         error.stack,
       );
-      throw new InternalServerErrorException();
+      throw new BadRequestException();
     }
   }
 }
