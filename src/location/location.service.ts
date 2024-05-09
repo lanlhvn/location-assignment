@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  MethodNotAllowedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +13,7 @@ import { TreeRepository } from 'typeorm';
 
 @Injectable()
 export class LocationService {
+  private readonly logger = new Logger(LocationService.name);
   constructor(
     @InjectRepository(Location)
     private readonly locationRepository: TreeRepository<Location>,
@@ -19,16 +26,30 @@ export class LocationService {
     if (createLocationDto.parent_id) {
       const parentLocation = await this.findOne(createLocationDto.parent_id);
       if (!parentLocation) {
-        throw new BadRequestException('The upper Location not found.');
+        this.logger.error(
+          `Not found parent with id: ${createLocationDto.parent_id}`,
+        );
+        throw new NotFoundException('The upper Location not found.');
       }
       location.parent = parentLocation;
     }
-
-    return await this.locationRepository.save(location);
+    try {
+      return await this.locationRepository.save(location);
+    } catch (error) {
+      this.logger.error(
+        `Failed to create location: ${JSON.stringify(createLocationDto)}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
 
   async findAll() {
-    return await this.locationRepository.findTrees();
+    try {
+      return await this.locationRepository.findTrees();
+    } catch (error) {
+      this.logger.error('Failed to retrieve locations', error.stack);
+    }
   }
 
   async findOne(id: number) {
@@ -39,7 +60,8 @@ export class LocationService {
     // find the location to update
     const location = await this.findOne(id);
     if (!location) {
-      throw new BadRequestException('Location not found.');
+      this.logger.error(`Not found location with id: ${id}`);
+      throw new NotFoundException('Location not found.');
     }
 
     // check if any changes in parent location
@@ -49,16 +71,56 @@ export class LocationService {
     ) {
       const parentLocation = await this.findOne(updateLocationDto.parent_id);
       if (!parentLocation) {
-        throw new BadRequestException('The upper Location not found.');
+        this.logger.error(
+          `Not found parent with id: ${updateLocationDto.parent_id}`,
+        );
+        throw new NotFoundException('The upper Location not found.');
       }
       location.parent = parentLocation;
     }
 
+    // update process
     Object.assign(location, updateLocationDto);
-    return await this.locationRepository.save(location);
+
+    try {
+      return await this.locationRepository.save(location);
+    } catch (error) {
+      this.logger.error(
+        `Failed to update location: ${JSON.stringify(updateLocationDto)}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} location`;
+  async remove(id: number) {
+    // find the location to delete
+    const location = await this.findOne(id);
+    if (!location) {
+      this.logger.error(`Not found the location with id: ${id}`);
+      throw new NotFoundException('Location not found.');
+    }
+
+    // check if the location contains children
+    const childNo = await this.locationRepository.countDescendants(location);
+    if (childNo > 1) {
+      this.logger.error(
+        `Delete location failed. The location contains children. Location: ${JSON.stringify(location)} `,
+      );
+      throw new MethodNotAllowedException(
+        'The location now contains sub locations.',
+      );
+    }
+
+    // delete process
+    try {
+      return await this.locationRepository.remove(location);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete location: ${JSON.stringify(location)}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
 }

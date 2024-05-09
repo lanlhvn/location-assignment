@@ -28,30 +28,20 @@ export class Location {
   area: string;
 
   @TreeChildren()
-  children: Location[];
+  children?: Location[];
 
   @Column({ nullable: true })
   parent_id: number;
 
   @TreeParent()
-  parent: Location;
+  parent?: Location;
 
-  // @Column({
-  //   type: 'timestamp',
-  //   nullable: true,
-  //   default: () => 'CURRENT_TIMESTAMP',
-  // })
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP(6)',
   })
   created_date: Date;
 
-  // @Column({
-  //   type: 'timestamp',
-  //   nullable: true,
-  //   default: () => 'CURRENT_TIMESTAMP',
-  // })
   @UpdateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP(6)',
