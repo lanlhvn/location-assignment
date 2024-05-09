@@ -1,10 +1,12 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
   Tree,
   TreeChildren,
   TreeParent,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -34,17 +36,26 @@ export class Location {
   @TreeParent()
   parent: Location;
 
-  @Column({
+  // @Column({
+  //   type: 'timestamp',
+  //   nullable: true,
+  //   default: () => 'CURRENT_TIMESTAMP',
+  // })
+  @CreateDateColumn({
     type: 'timestamp',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
+    default: () => 'CURRENT_TIMESTAMP(6)',
   })
   created_date: Date;
 
-  @Column({
+  // @Column({
+  //   type: 'timestamp',
+  //   nullable: true,
+  //   default: () => 'CURRENT_TIMESTAMP',
+  // })
+  @UpdateDateColumn({
     type: 'timestamp',
-    nullable: true,
-    default: () => 'CURRENT_TIMESTAMP',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updated_date: Date;
 }

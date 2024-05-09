@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,7 +19,7 @@ export class LocationService {
     if (createLocationDto.parent_id) {
       const parentLocation = await this.findOne(createLocationDto.parent_id);
       if (!parentLocation) {
-        throw new NotFoundException('The upper Location not found.');
+        throw new BadRequestException('The upper Location not found.');
       }
       location.parent = parentLocation;
     }
@@ -39,7 +39,7 @@ export class LocationService {
     // find the location to update
     const location = await this.findOne(id);
     if (!location) {
-      throw new NotFoundException('Location not found.');
+      throw new BadRequestException('Location not found.');
     }
 
     // check if any changes in parent location
@@ -49,7 +49,7 @@ export class LocationService {
     ) {
       const parentLocation = await this.findOne(updateLocationDto.parent_id);
       if (!parentLocation) {
-        throw new NotFoundException('The upper Location not found.');
+        throw new BadRequestException('The upper Location not found.');
       }
       location.parent = parentLocation;
     }
